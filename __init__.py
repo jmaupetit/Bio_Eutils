@@ -71,7 +71,7 @@ _open        Internally used function.
 import urllib, urllib2, time, warnings
 import os.path
 
-from Bio._py3k import _binary_to_string_handle
+from _py3k import _binary_to_string_handle
 
 email = None
 tool = "biopython"
