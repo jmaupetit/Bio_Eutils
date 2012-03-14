@@ -1,4 +1,4 @@
-# Bio_Entrez
+# Bio_Eutils
 
 ## Introduction
 
@@ -61,8 +61,7 @@ the
 
 ## Disclaimer
 
-> Please not that J. Maupetit is not the author of the Bio.Entrez
-> package. He only maintains this standalone version for his own
-> usage. The Bio.Entrez module is distributed under the Biopython
-> license agreement (see LICENSE).
-
+> Please not that [J. Maupetit](http://julien.maupetit.me) is not the
+> author of the Bio.Entrez and Bio.Medline packages. He only maintains
+> this standalone version for his own usage. The Bio.* modules are
+> distributed under the Biopython license agreement (see LICENSE).
