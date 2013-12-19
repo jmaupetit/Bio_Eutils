@@ -16,7 +16,7 @@ The latest version of the module follows the latest biopython release:
 
 The main purpose of this module is to keep the installation step as
 small and simple as possible. Hence the module comes with no other
-dependancies. You can either choose to clone the repository or install
+dependencies. You can either choose to clone the repository or install
 it from pip.
 
 ### Clone the module from [Github](git://github.com/jmaupetit/Bio_Eutils.git)
@@ -42,7 +42,7 @@ A sample script to fetch references from J. Monod follows.
     handle.close()
 	
     # Fetch matching entries
-    handle = Entrez.efetch( db='pubmed', id=pub_search['IdList'], retmax=20, rettype="medline", retmode="text" )
+    handle = Entrez.efetch(db='pubmed', id=pub_search['IdList'], retmax=20, rettype="medline", retmode="text")
     pub_items = Medline.parse(handle)
     
     # Work with it
@@ -55,7 +55,7 @@ A sample script to fetch references from J. Monod follows.
 
     handle.close()
 
-For more informations about the Entrez and Medline modules, refere to
+For more informations about the Entrez and Medline modules, refer to
 the
 [Biopython documentation](http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc96).
 
