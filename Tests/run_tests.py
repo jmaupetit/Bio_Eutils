@@ -39,21 +39,20 @@ import unittest
 import doctest
 import distutils.util
 import gc
-from io import BytesIO
 
 # Note, we want to be able to call run_tests.py BEFORE
 # Biopython is installed, so we can't use this:
 # from Bio._py3k import StringIO
 try:
-    from StringIO import StringIO # Python 2 (byte strings)
+    from StringIO import StringIO  # Python 2 (byte strings)
 except ImportError:
-    from io import StringIO # Python 3 (unicode strings)
+    from io import StringIO  # Python 3 (unicode strings)
 
 
 def is_pypy():
     import platform
     try:
-        if platform.python_implementation()=='PyPy':
+        if platform.python_implementation() == 'PyPy':
             return True
     except AttributeError:
         #New in Python 2.6, not in Jython yet either
@@ -106,7 +105,7 @@ def main(argv):
     # get the command line options
     try:
         opts, args = getopt.getopt(argv, 'gv', ["generate", "verbose",
-            "doctest", "help", "offline"])
+                                                "doctest", "help", "offline"])
     except getopt.error as msg:
         print(msg)
         print(__doc__)
@@ -160,7 +159,8 @@ def main(argv):
 
 
 class ComparisonTestCase(unittest.TestCase):
-    """Run a print-and-compare test and compare its output against expected output.
+    """Run a print-and-compare test and compare its output against expected
+    output.
     """
 
     def __init__(self, name, output=None):
@@ -191,7 +191,8 @@ class ComparisonTestCase(unittest.TestCase):
             else:
                 expected = open(outputfile, 'rU')
         except IOError:
-            self.fail("Warning: Can't open %s for test %s" % (outputfile, self.name))
+            self.fail("Warning: Can't open %s for test %s" % (
+                outputfile, self.name))
 
         self.output.seek(0)
         # first check that we are dealing with the right output
@@ -200,8 +201,8 @@ class ComparisonTestCase(unittest.TestCase):
 
         if expected_test != self.name:
             expected.close()
-            raise ValueError("\nOutput:   %s\nExpected: %s"
-                  % (self.name, expected_test))
+            raise ValueError("\nOutput:   %s\nExpected: %s" % (
+                self.name, expected_test))
 
         # now loop through the output and compare it to the expected file
         while True:
@@ -227,8 +228,8 @@ class ComparisonTestCase(unittest.TestCase):
             # otherwise make sure the two lines are the same
             elif expected_line != output_line:
                 expected.close()
-                raise ValueError("\nOutput  : %s\nExpected: %s"
-                      % (repr(output_line), repr(expected_line)))
+                raise ValueError("\nOutput  : %s\nExpected: %s" % (
+                    repr(output_line), repr(expected_line)))
         expected.close()
 
     def generate_output(self):
@@ -278,8 +279,7 @@ class TestRunner(unittest.TextTestRunner):
             self.tests.remove("doctest")
             self.tests.extend(DOCTEST_MODULES)
         stream = StringIO()
-        unittest.TextTestRunner.__init__(self, stream,
-                verbosity=verbosity)
+        unittest.TextTestRunner.__init__(self, stream, verbosity=verbosity)
 
     def runTest(self, name):
         from Bio import MissingExternalDependencyError
@@ -288,8 +288,8 @@ class TestRunner(unittest.TextTestRunner):
         # Restore the language and thus default encoding (in case a prior
         # test changed this, e.g. to help with detecting command line tools)
         global system_lang
-        os.environ['LANG']=system_lang
-        # Note the current directory:
+        os.environ['LANG'] = system_lang
+        # Note the current directory
         cur_dir = os.path.abspath(".")
         try:
             stdout = sys.stdout
@@ -298,7 +298,7 @@ class TestRunner(unittest.TextTestRunner):
                 sys.stderr.write("%s ... " % name)
                 #It's either a unittest or a print-and-compare test
                 suite = unittest.TestLoader().loadTestsFromName(name)
-                if suite.countTestCases()==0:
+                if suite.countTestCases() == 0:
                     # This is a print-and-compare test instead of a
                     # unittest-type test.
                     test = ComparisonTestCase(name, output)
@@ -308,7 +308,8 @@ class TestRunner(unittest.TextTestRunner):
                 sys.stderr.write("%s docstring test ... " % name)
                 #Can't use fromlist=name.split(".") until python 2.5+
                 module = __import__(name, None, None, name.split("."))
-                suite = doctest.DocTestSuite(module, optionflags=doctest.ELLIPSIS)
+                suite = doctest.DocTestSuite(module,
+                                             optionflags=doctest.ELLIPSIS)
                 del module
             suite.run(result)
             if cur_dir != os.path.abspath("."):
@@ -372,8 +373,8 @@ class TestRunner(unittest.TextTestRunner):
         timeTaken = stopTime - startTime
         sys.stderr.write(self.stream.getvalue())
         sys.stderr.write('-' * 70 + "\n")
-        sys.stderr.write("Ran %d test%s in %.3f seconds\n" %
-                            (total, total != 1 and "s" or "", timeTaken))
+        sys.stderr.write("Ran %d test%s in %.3f seconds\n" % (
+            total, total != 1 and "s" or "", timeTaken))
         sys.stderr.write("\n")
         if failures:
             sys.stderr.write("FAILED (failures = %d)\n" % failures)
