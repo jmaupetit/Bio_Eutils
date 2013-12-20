@@ -75,11 +75,11 @@ import warnings
 import os.path
 
 #Importing these functions with leading underscore as not intended for reuse
-from Bio._py3k import urlopen as _urlopen
-from Bio._py3k import urlencode as _urlencode
-from Bio._py3k import HTTPError as _HTTPError
+from Bio_Eutils._py3k import urlopen as _urlopen
+from Bio_Eutils._py3k import urlencode as _urlencode
+from Bio_Eutils._py3k import HTTPError as _HTTPError
 
-from Bio._py3k import _binary_to_string_handle, _as_bytes
+from Bio_Eutils._py3k import _binary_to_string_handle, _as_bytes
 
 email = None
 tool = "biopython"

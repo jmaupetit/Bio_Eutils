@@ -40,9 +40,9 @@ import warnings
 from xml.parsers import expat
 
 #Importing these functions with leading underscore as not intended for reuse
-from Bio._py3k import urlopen as _urlopen
-from Bio._py3k import urlparse as _urlparse
-from Bio._py3k import unicode
+from Bio_Eutils._py3k import urlopen as _urlopen
+from Bio_Eutils._py3k import urlparse as _urlparse
+from Bio_Eutils._py3k import unicode
 
 # The following four classes are used to add a member .attributes to integers,
 # strings, lists, and dictionaries, respectively.
