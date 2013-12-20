@@ -78,6 +78,16 @@ DOCTEST_MODULES = []
 system_lang = os.environ.get('LANG', 'C')  # Cache this
 
 
+# Exception taken from Bio
+class MissingExternalDependencyError(Exception):
+    """Missing an external dependency.
+
+    Used for things like missing command line tools. Important for our unit
+    tests to allow skipping tests with missing external dependencies.
+    """
+    pass
+
+
 def main(argv):
     """Run tests, return number of failures (integer)."""
     # insert our paths in sys.path:
@@ -282,7 +292,6 @@ class TestRunner(unittest.TextTestRunner):
         unittest.TextTestRunner.__init__(self, stream, verbosity=verbosity)
 
     def runTest(self, name):
-        from Bio import MissingExternalDependencyError
         result = self._makeResult()
         output = StringIO()
         # Restore the language and thus default encoding (in case a prior
