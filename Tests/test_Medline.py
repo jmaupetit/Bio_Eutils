@@ -5,7 +5,7 @@
 
 import unittest
 
-from Bio import Medline
+from Bio_Eutils import Medline
 
 
 class TestMedline(unittest.TestCase):

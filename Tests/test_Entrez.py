@@ -40,7 +40,7 @@ del p
 del expat
 
 
-from Bio import Entrez
+from Bio_Eutils import Entrez
 
 
 class GeneralTests(unittest.TestCase):
