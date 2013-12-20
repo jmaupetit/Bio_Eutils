@@ -10,7 +10,7 @@ a set of (web)services to query Entrez databases.
 ## Version
 
 The latest version of the module follows the latest biopython release:
-[1.59](http://biopython.org/wiki/Download) at this time.
+[1.63](http://biopython.org/wiki/Download) at this time.
 
 ## Installation
 
@@ -25,9 +25,9 @@ it from pip.
     cd Bio_Eutils
     python setup.py install
 
-### Direct install with pip
+### Install from PyPI with pip
 
-    pip install git+git://github.com/jmaupetit/Bio_Eutils.git
+    pip install Bio_Eutils
 
 ## Usage
 
@@ -58,6 +58,13 @@ A sample script to fetch references from J. Monod follows.
 For more informations about the Entrez and Medline modules, refer to
 the
 [Biopython documentation](http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc96).
+
+## Running tests
+
+If you want to contribute to this project, you may want to run tests. This could be achieve *via*:
+
+    $ cd Tests
+    $ python run_tests.py
 
 ## Disclaimer
 
