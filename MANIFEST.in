@@ -1,1 +1,4 @@
 include LICENSE README.md
+include Bio_Eutils/Entrez/DTDs/*.dtd
+include Bio_Eutils/Entrez/DTDs/*.ent
+include Bio_Eutils/Entrez/DTDs/*.mod

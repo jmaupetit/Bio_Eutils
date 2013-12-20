@@ -10,13 +10,13 @@ a set of (web)services to query Entrez databases.
 ## Version
 
 The latest version of the module follows the latest biopython release:
-[1.59](http://biopython.org/wiki/Download) at this time.
+[1.63](http://biopython.org/wiki/Download) at this time.
 
 ## Installation
 
 The main purpose of this module is to keep the installation step as
 small and simple as possible. Hence the module comes with no other
-dependancies. You can either choose to clone the repository or install
+dependencies. You can either choose to clone the repository or install
 it from pip.
 
 ### Clone the module from [Github](git://github.com/jmaupetit/Bio_Eutils.git)
@@ -25,9 +25,9 @@ it from pip.
     cd Bio_Eutils
     python setup.py install
 
-### Direct install with pip
+### Install from PyPI with pip
 
-    pip install git+git://github.com/jmaupetit/Bio_Eutils.git
+    pip install Bio_Eutils
 
 ## Usage
 
@@ -42,7 +42,7 @@ A sample script to fetch references from J. Monod follows.
     handle.close()
 	
     # Fetch matching entries
-    handle = Entrez.efetch( db='pubmed', id=pub_search['IdList'], retmax=20, rettype="medline", retmode="text" )
+    handle = Entrez.efetch(db='pubmed', id=pub_search['IdList'], retmax=20, rettype="medline", retmode="text")
     pub_items = Medline.parse(handle)
     
     # Work with it
@@ -55,9 +55,16 @@ A sample script to fetch references from J. Monod follows.
 
     handle.close()
 
-For more informations about the Entrez and Medline modules, refere to
+For more informations about the Entrez and Medline modules, refer to
 the
 [Biopython documentation](http://biopython.org/DIST/docs/tutorial/Tutorial.html#htoc96).
+
+## Running tests
+
+If you want to contribute to this project, you may want to run tests. This could be achieve *via*:
+
+    $ cd Tests
+    $ python run_tests.py
 
 ## Disclaimer
 
