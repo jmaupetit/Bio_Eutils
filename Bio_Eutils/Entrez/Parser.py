@@ -154,9 +154,8 @@ class DataHandler(object):
     local_dtd_dir = os.path.join(home, '.biopython', 'Bio', 'Entrez', 'DTDs')
     del home
 
-    from Bio import Entrez
-    global_dtd_dir = os.path.join(str(Entrez.__path__[0]), "DTDs")
-    del Entrez
+    from . import __path__
+    global_dtd_dir = os.path.join(str(__path__[0]), "DTDs")
 
     def __init__(self, validate):
         self.stack = []
