@@ -57,21 +57,29 @@ parse        Parses the XML results returned by those of the above functions
              >>> records = Entrez.parse(handle)
              >>> for record in records:
              ...     # each record is a Python dictionary or list.
-             ...     print record['MedlineCitation']['Article']['ArticleTitle']
+             ...     print(record['MedlineCitation']['Article']['ArticleTitle'])
              Biopython: freely available Python tools for computational molecular biology and bioinformatics.
              PDB file parser and structure class implemented in Python.
              >>> handle.close()
 
              This function is appropriate only if the XML file contains
-             multiple records, and is particular useful for large files. 
+             multiple records, and is particular useful for large files.
 
 _open        Internally used function.
 
 """
-import urllib, urllib2, time, warnings
+from __future__ import print_function
+
+import time
+import warnings
 import os.path
 
-from _py3k import _binary_to_string_handle
+#Importing these functions with leading underscore as not intended for reuse
+from Bio._py3k import urlopen as _urlopen
+from Bio._py3k import urlencode as _urlencode
+from Bio._py3k import HTTPError as _HTTPError
+
+from Bio._py3k import _binary_to_string_handle, _as_bytes
 
 email = None
 tool = "biopython"
@@ -91,12 +99,13 @@ def epost(db, **keywds):
 
     Raises an IOError exception if there's a network error.
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi'
-    variables = {'db' : db}
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi'
+    variables = {'db': db}
     variables.update(keywds)
     return _open(cgi, variables, post=True)
 
-def efetch(db, **keywds):
+
+def efetch(db, **keywords):
     """Fetches Entrez results which are returned as a handle.
 
     EFetch retrieves records in the requested format from a list of one or
@@ -114,25 +123,31 @@ def efetch(db, **keywds):
     >>> from Bio import Entrez
     >>> Entrez.email = "Your.Name.Here@example.org"
     >>> handle = Entrez.efetch(db="nucleotide", id="57240072", rettype="gb", retmode="text")
-    >>> print handle.readline().strip()
+    >>> print(handle.readline().strip())
     LOCUS       AY851612                 892 bp    DNA     linear   PLN 10-APR-2007
     >>> handle.close()
 
     Warning: The NCBI changed the default retmode in Feb 2012, so many
     databases which previously returned text output now give XML.
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
-    variables = {'db' : db}
-    keywords = keywds
-    if "id" in keywds and isinstance(keywds["id"], list):
-        #Fix for NCBI change (probably part of EFetch 2,0, Feb 2012) where
-        #a list of ID strings now gives HTTP Error 500: Internal server error
-        #This was turned into ...&id=22307645&id=22303114&... which used to work
-        #while now the NCBI appear to insist on ...&id=22301129,22299544,...
-        keywords = keywds.copy() #Don't alter input dict!
-        keywords["id"] = ",".join(keywds["id"])
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
+    variables = {'db': db}
     variables.update(keywords)
-    return _open(cgi, variables)
+    post = False
+    try:
+        ids = variables["id"]
+    except KeyError:
+        pass
+    else:
+        if isinstance(ids, list):
+            ids = ",".join(ids)
+            variables["id"] = ids
+        if ids.count(",") >= 200:
+            # NCBI prefers an HTTP POST instead of an HTTP GET if there are
+            # more than about 200 IDs
+            post = True
+    return _open(cgi, variables, post)
+
 
 def esearch(db, term, **keywds):
     """ESearch runs an Entrez search and returns a handle to the results.
@@ -163,11 +178,12 @@ def esearch(db, term, **keywds):
     True
 
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'
-    variables = {'db' : db,
-                 'term' : term}
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'
+    variables = {'db': db,
+                 'term': term}
     variables.update(keywds)
     return _open(cgi, variables)
+
 
 def elink(**keywds):
     """ELink checks for linked external articles and returns a handle.
@@ -194,7 +210,7 @@ def elink(**keywds):
     >>> handle = Entrez.elink(dbfrom="pubmed", id=pmid, linkname="pubmed_pubmed")
     >>> record = Entrez.read(handle)
     >>> handle.close()
-    >>> print record[0]["LinkSetDb"][0]["LinkName"]
+    >>> print(record[0]["LinkSetDb"][0]["LinkName"])
     pubmed_pubmed
     >>> linked = [link["Id"] for link in record[0]["LinkSetDb"][0]["Link"]]
     >>> "17121776" in linked
@@ -202,10 +218,11 @@ def elink(**keywds):
 
     This is explained in much more detail in the Biopython Tutorial.
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi'
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
+
 
 def einfo(**keywds):
     """EInfo returns a summary of the Entez databases as a results handle.
@@ -229,10 +246,11 @@ def einfo(**keywds):
     True
 
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi'
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
+
 
 def esummary(**keywds):
     """ESummary retrieves document summaries as a results handle.
@@ -254,16 +272,17 @@ def esummary(**keywds):
     >>> handle = Entrez.esummary(db="journals", id="30367")
     >>> record = Entrez.read(handle)
     >>> handle.close()
-    >>> print record[0]["Id"]
+    >>> print(record[0]["Id"])
     30367
-    >>> print record[0]["Title"]
+    >>> print(record[0]["Title"])
     Computational biology and chemistry
 
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
+
 
 def egquery(**keywds):
     """EGQuery provides Entrez database counts for a global search.
@@ -289,14 +308,15 @@ def egquery(**keywds):
     >>> handle.close()
     >>> for row in record["eGQueryResult"]:
     ...     if "pmc" in row["DbName"]:
-    ...         print row["Count"] > 60
+    ...         print(row["Count"] > 60)
     True
 
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/egquery.fcgi'
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/egquery.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
+
 
 def espell(**keywds):
     """ESpell retrieves spelling suggestions, returned in a results handle.
@@ -312,23 +332,24 @@ def espell(**keywds):
 
     Short example:
 
-    >>> from Bio import Entrez 
+    >>> from Bio import Entrez
     >>> Entrez.email = "Your.Name.Here@example.org"
     >>> record = Entrez.read(Entrez.espell(term="biopythooon"))
-    >>> print record["Query"] 
+    >>> print(record["Query"])
     biopythooon
-    >>> print record["CorrectedQuery"] 
+    >>> print(record["CorrectedQuery"])
     biopython
 
     """
-    cgi='http://eutils.ncbi.nlm.nih.gov/entrez/eutils/espell.fcgi'
+    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/espell.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
 
+
 def read(handle, validate=True):
     """Parses an XML file from the NCBI Entrez Utilities into python objects.
-    
+
     This function parses an XML file created by NCBI's Entrez Utilities,
     returning a multilevel data structure of Python lists and dictionaries.
     Most XML files returned by NCBI's Entrez Utilities can be parsed by
@@ -346,14 +367,15 @@ def read(handle, validate=True):
     (if any) of each element in a dictionary my_element.attributes, and
     the tag name in my_element.tag.
     """
-    from Parser import DataHandler
+    from .Parser import DataHandler
     handler = DataHandler(validate)
     record = handler.read(handle)
     return record
 
+
 def parse(handle, validate=True):
     """Parses an XML file from the NCBI Entrez Utilities into python objects.
-    
+
     This function parses an XML file created by NCBI's Entrez Utilities,
     returning a multilevel data structure of Python lists and dictionaries.
     This function is suitable for XML files that (in Python) can be represented
@@ -377,10 +399,11 @@ def parse(handle, validate=True):
     (if any) of each element in a dictionary my_element.attributes, and
     the tag name in my_element.tag.
     """
-    from Parser import DataHandler
+    from .Parser import DataHandler
     handler = DataHandler(validate)
     records = handler.parse(handle)
     return records
+
 
 def _open(cgi, params={}, post=False):
     """Helper function to build the URL and open a handle to it (PRIVATE).
@@ -412,33 +435,32 @@ def _open(cgi, params={}, post=False):
         params["tool"] = tool
     # Tell Entrez who we are
     if not "email" in params:
-        if email!=None:
+        if email is not None:
             params["email"] = email
         else:
             warnings.warn("""
 Email address is not specified.
 
-To make use of NCBI's E-utilities, NCBI strongly recommends you to specify
-your email address with each request. From June 1, 2010, this will be
-mandatory. As an example, if your email address is A.N.Other@example.com, you
-can specify it as follows:
+To make use of NCBI's E-utilities, NCBI requires you to specify your
+email address with each request.  As an example, if your email address
+is A.N.Other@example.com, you can specify it as follows:
    from Bio import Entrez
    Entrez.email = 'A.N.Other@example.com'
 In case of excessive usage of the E-utilities, NCBI will attempt to contact
 a user at the email address provided before blocking access to the
 E-utilities.""", UserWarning)
     # Open a handle to Entrez.
-    options = urllib.urlencode(params, doseq=True)
+    options = _urlencode(params, doseq=True)
     #print cgi + "?" + options
     try:
         if post:
             #HTTP POST
-            handle = urllib2.urlopen(cgi, data=options)
+            handle = _urlopen(cgi, data=_as_bytes(options))
         else:
             #HTTP GET
             cgi += "?" + options
-            handle = urllib2.urlopen(cgi)
-    except urllib2.HTTPError, exception:
+            handle = _urlopen(cgi)
+    except _HTTPError as exception:
         raise exception
 
     return _binary_to_string_handle(handle)
@@ -448,10 +470,10 @@ _open.previous = 0
 
 def _test():
     """Run the module's doctests (PRIVATE)."""
-    print "Runing doctests..."
+    print("Running doctests...")
     import doctest
     doctest.testmod()
-    print "Done"
+    print("Done")
 
 if __name__ == "__main__":
     _test()
