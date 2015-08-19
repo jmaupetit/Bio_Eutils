@@ -10,7 +10,7 @@ a set of (web)services to query Entrez databases.
 ## Version
 
 The latest version of the module follows the latest biopython release:
-[1.63](http://biopython.org/wiki/Download) at this time.
+[1.65](http://biopython.org/wiki/Download) at this time.
 
 ## Installation
 
