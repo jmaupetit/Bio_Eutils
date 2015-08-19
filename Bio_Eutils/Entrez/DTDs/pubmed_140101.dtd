@@ -14,14 +14,14 @@
         - "ProviderId" has been removed from PubmedData
         - "URL" has been removed from PubmdeData
 		
-		$Id: pubmed_080101.dtd 143882 2008-10-23 15:38:53Z korobtch $
+		$Id: pubmed_140101.dtd 413871 2013-09-18 19:22:41Z korobtch $
         
        -->
 <!-- ================================================================= -->
 <!-- ================================================================= -->
 <!-- Reference to Where the MEDLINECITATION DTD is located  -->
-<!ENTITY % Medline PUBLIC "-//NLM//DTD Medline, 01 Jan 2008//EN"
-      "nlmmedline_080101.dtd">
+<!ENTITY % Medline PUBLIC "-//NLM//DTD Medline, 01 Jan 2014//EN"
+      "nlmmedlinecitationset_140101.dtd">
 %Medline;
 <!-- ================================================================= -->
 <!ENTITY % ArticleTitle.Ref "ArticleTitle">
@@ -32,21 +32,22 @@
                                    PL|PT|PS|RO|RU|SL|SK|SQ|SR|SV|SW|TH|TR|UK|
                                    VI|ZH)">
 <!ENTITY % pub.status.int "pmc | pmcr | pubmed | pubmedr | 
-                             premedline | medline | medliner | entrez">
+                             premedline | medline | medliner | entrez | pmc-release">
 <!ENTITY % pub.status "(received | accepted | epublish | 
                               ppublish | revised | aheadofprint | 
-                              retracted | %pub.status.int;)">
-<!ENTITY % art.id.type.int "pubmed | medline | pmcid">
+                              retracted | ecollection | %pub.status.int;)">
+<!ENTITY % art.id.type.int "pubmed | medline | pmcid | pmcbook | bookaccession">
+							
 <!ENTITY % art.id.type "(doi | pii | pmcpid | pmpid | pmc | mid |
                               sici | %art.id.type.int;)">
 <!-- ================================================================= -->
-<!ELEMENT PubmedArticleSet (PubmedArticle)+>
+<!ELEMENT PubmedArticleSet (PubmedArticle | PubmedBookArticle)+>
 <!-- ================================================================= -->
 <!-- This is the top level element for PubMedArticle -->
-<!ELEMENT PubmedArticle ((NCBIArticle | MedlineCitation), PubmedData?)>
+<!ELEMENT PubmedArticle (MedlineCitation, PubmedData?)>
 <!-- ================================================================= -->
-<!ELEMENT PubmedData (History*, PublicationStatus, ArticleIdList, ObjectList?)>
-<!ELEMENT History (PubMedPubDate+)>
+<!ENTITY % normal.date "Year, Month, Day, (Hour, (Minute, Second?)?)?">
+<!ELEMENT PubmedData (History?, PublicationStatus, ArticleIdList, ObjectList?)>
 <!ELEMENT PubMedPubDate (%normal.date;)>
 <!ATTLIST PubMedPubDate
 	PubStatus %pub.status; #REQUIRED
@@ -57,6 +58,7 @@
 <!ATTLIST ArticleId
 	IdType %art.id.type; "pubmed"
 >
+<!ELEMENT History (PubMedPubDate+)>
 <!ELEMENT URL (#PCDATA)>
 <!ATTLIST URL
 	lang %iso.language.codes; #IMPLIED
@@ -65,7 +67,13 @@
 <!ELEMENT ObjectList (Object)+>
 <!ELEMENT Object (Param)*>
 <!ATTLIST Object Type CDATA #REQUIRED>
-<!ELEMENT Param (#PCDATA)>
+<!ELEMENT Param %text;>
 <!ATTLIST Param Name CDATA #REQUIRED>
+<!ELEMENT Hour (#PCDATA)>
+<!ELEMENT Minute (#PCDATA)>
+<!ELEMENT Second (#PCDATA)>
 
+<!-- ================================================================= -->
+<!ENTITY % Bookdoc PUBLIC "-//NLM//DTD Bookdoc, 01 Jan 2014//EN" "bookdoc_140101.dtd">
+%Bookdoc;
 <!-- ================================================================= -->

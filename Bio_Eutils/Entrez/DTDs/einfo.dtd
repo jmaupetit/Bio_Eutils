@@ -17,6 +17,7 @@ $Id: eInfo_020511.dtd 393292 2013-03-22 21:30:47Z fialkov $
 <!ELEMENT	LastUpdate	(#PCDATA)>	<!-- \d+ -->
 
 <!ELEMENT	ERROR		(#PCDATA)>	<!-- .+ -->
+<!ELEMENT	Warning		(#PCDATA)>  <!-- .+ -->
 
 <!ELEMENT	IsDate		(#PCDATA)>	<!-- (Y|N) -->
 <!ELEMENT	IsNumerical	(#PCDATA)>	<!-- (Y|N) -->
@@ -52,9 +53,10 @@ $Id: eInfo_020511.dtd 393292 2013-03-22 21:30:47Z fialkov $
 				MenuName,
 				Description,
 				DbBuild?,
-				Count,
-				LastUpdate,
-				FieldList,
+				Warning?,
+				Count?,
+				LastUpdate?,
+				FieldList?,
 				LinkList?)>
 				
 <!ELEMENT	eInfoResult	(DbList|DbInfo|ERROR)>
