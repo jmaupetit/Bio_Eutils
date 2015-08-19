@@ -39,6 +39,7 @@ import unittest
 import doctest
 import distutils.util
 import gc
+from io import BytesIO
 
 # Note, we want to be able to call run_tests.py BEFORE
 # Biopython is installed, so we can't use this:
@@ -55,7 +56,7 @@ def is_pypy():
         if platform.python_implementation() == 'PyPy':
             return True
     except AttributeError:
-        #New in Python 2.6, not in Jython yet either
+        # New in Python 2.6, not in Jython yet either
         pass
     return False
 
@@ -74,18 +75,59 @@ def is_numpy():
 # If you develop docstring tests for other modules, please add
 # those modules here. Please sort names alphabetically.
 DOCTEST_MODULES = []
+# Silently ignore any doctests for modules requiring numpy!
+if is_numpy():
+    DOCTEST_MODULES.extend(["Bio.Affy.CelFile",
+                            "Bio.Statistics.lowess",
+                            "Bio.PDB.Polypeptide",
+                            "Bio.PDB.Selection"
+                            ])
+
+
+try:
+    import sqlite3
+    del sqlite3
+except ImportError:
+    # Missing on Jython or Python 2.4
+    DOCTEST_MODULES.remove("Bio.SeqIO")
+    DOCTEST_MODULES.remove("Bio.SearchIO")
+
+# Skip Bio.Seq doctest under Python 3, see http://bugs.python.org/issue7490
+# if sys.version_info[0] == 3:
+#     DOCTEST_MODULES.remove("Bio.Seq")
+
+
+# Skip Bio.bgzf doctest for broken gzip, see http://bugs.python.org/issue17666
+def _have_bug17666():
+    """Debug function to check if Python's gzip is broken (PRIVATE).
+
+    Checks for http://bugs.python.org/issue17666 expected in Python 2.7.4,
+    3.2.4 and 3.3.1 only.
+    """
+    if os.name == 'java':
+        # Jython not affected
+        return False
+    import gzip
+    # Would like to use byte literal here:
+    bgzf_eof = "\x1f\x8b\x08\x04\x00\x00\x00\x00\x00\xff\x06\x00BC" + \
+               "\x02\x00\x1b\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    if sys.version_info[0] >= 3:
+        import codecs
+        bgzf_eof = codecs.latin_1_encode(bgzf_eof)[0]
+    h = gzip.GzipFile(fileobj=BytesIO(bgzf_eof))
+    try:
+        data = h.read()
+        h.close()
+        assert not data, "Should be zero length, not %i" % len(data)
+        return False
+    except TypeError as err:
+        # TypeError: integer argument expected, got 'tuple'
+        h.close()
+        return True
+if _have_bug17666():
+    DOCTEST_MODULES.remove("Bio.bgzf")
 
 system_lang = os.environ.get('LANG', 'C')  # Cache this
-
-
-# Exception taken from Bio
-class MissingExternalDependencyError(Exception):
-    """Missing an external dependency.
-
-    Used for things like missing command line tools. Important for our unit
-    tests to allow skipping tests with missing external dependencies.
-    """
-    pass
 
 
 def main(argv):
@@ -110,7 +152,7 @@ def main(argv):
     # non-English OS (we may want 'command not found' in English).
     # HOWEVER, we do not want to change the default encoding which is
     # rather important on Python 3 with unicode.
-    #lang = os.environ['LANG']
+    # lang = os.environ['LANG']
 
     # get the command line options
     try:
@@ -130,10 +172,10 @@ def main(argv):
             return 0
         if o == "--offline":
             print("Skipping any tests requiring internet access")
-            #This is a bit of a hack...
+            # This is a bit of a hack...
             import requires_internet
             requires_internet.check.available = False
-            #The check() function should now report internet not available
+            # The check() function should now report internet not available
         if o == "-g" or o == "--generate":
             if len(args) > 1:
                 print("Only one argument (the test name) needed for generate")
@@ -169,9 +211,7 @@ def main(argv):
 
 
 class ComparisonTestCase(unittest.TestCase):
-    """Run a print-and-compare test and compare its output against expected
-    output.
-    """
+    """Run a print-and-compare test and check it against expected output."""
 
     def __init__(self, name, output=None):
         """Initialize with the test to run.
@@ -195,14 +235,15 @@ class ComparisonTestCase(unittest.TestCase):
         outputfile = os.path.join(outputdir, self.name)
         try:
             if sys.version_info[0] >= 3:
-                #Python 3 problem: Can't use utf8 on output/test_geo
-                #due to micro (\xb5) and degrees (\xb0) symbols
+                # Python 3 problem: Can't use utf8 on output/test_geo
+                # due to micro (\xb5) and degrees (\xb0) symbols
+                # Also universal new lines mode deprecated on Python 3
                 expected = open(outputfile, encoding="latin")
             else:
-                expected = open(outputfile, 'rU')
+                expected = open(outputfile, "rU")
         except IOError:
-            self.fail("Warning: Can't open %s for test %s" % (
-                outputfile, self.name))
+            self.fail("Warning: Can't open %s for test %s" %
+                      (outputfile, self.name))
 
         self.output.seek(0)
         # first check that we are dealing with the right output
@@ -211,8 +252,8 @@ class ComparisonTestCase(unittest.TestCase):
 
         if expected_test != self.name:
             expected.close()
-            raise ValueError("\nOutput:   %s\nExpected: %s" % (
-                self.name, expected_test))
+            raise ValueError("\nOutput:   %s\nExpected: %s"
+                             % (self.name, expected_test))
 
         # now loop through the output and compare it to the expected file
         while True:
@@ -238,8 +279,8 @@ class ComparisonTestCase(unittest.TestCase):
             # otherwise make sure the two lines are the same
             elif expected_line != output_line:
                 expected.close()
-                raise ValueError("\nOutput  : %s\nExpected: %s" % (
-                    repr(output_line), repr(expected_line)))
+                raise ValueError("\nOutput  : %s\nExpected: %s"
+                                 % (repr(output_line), repr(expected_line)))
         expected.close()
 
     def generate_output(self):
@@ -289,23 +330,25 @@ class TestRunner(unittest.TextTestRunner):
             self.tests.remove("doctest")
             self.tests.extend(DOCTEST_MODULES)
         stream = StringIO()
-        unittest.TextTestRunner.__init__(self, stream, verbosity=verbosity)
+        unittest.TextTestRunner.__init__(self, stream,
+                                         verbosity=verbosity)
 
     def runTest(self, name):
+        from Bio_Eutils import MissingExternalDependencyError
         result = self._makeResult()
         output = StringIO()
         # Restore the language and thus default encoding (in case a prior
         # test changed this, e.g. to help with detecting command line tools)
         global system_lang
         os.environ['LANG'] = system_lang
-        # Note the current directory
+        # Note the current directory:
         cur_dir = os.path.abspath(".")
         try:
             stdout = sys.stdout
             sys.stdout = output
             if name.startswith("test_"):
                 sys.stderr.write("%s ... " % name)
-                #It's either a unittest or a print-and-compare test
+                # It's either a unittest or a print-and-compare test
                 suite = unittest.TestLoader().loadTestsFromName(name)
                 if suite.countTestCases() == 0:
                     # This is a print-and-compare test instead of a
@@ -313,9 +356,9 @@ class TestRunner(unittest.TextTestRunner):
                     test = ComparisonTestCase(name, output)
                     suite = unittest.TestSuite([test])
             else:
-                #It's a doc test
+                # It's a doc test
                 sys.stderr.write("%s docstring test ... " % name)
-                #Can't use fromlist=name.split(".") until python 2.5+
+                # Can't use fromlist=name.split(".") until python 2.5+
                 module = __import__(name, None, None, name.split("."))
                 suite = doctest.DocTestSuite(module,
                                              optionflags=doctest.ELLIPSIS)
@@ -323,9 +366,9 @@ class TestRunner(unittest.TextTestRunner):
             suite.run(result)
             if cur_dir != os.path.abspath("."):
                 sys.stderr.write("FAIL\n")
-                result.stream.write(result.separator1+"\n")
+                result.stream.write(result.separator1 + "\n")
                 result.stream.write("ERROR: %s\n" % name)
-                result.stream.write(result.separator2+"\n")
+                result.stream.write(result.separator2 + "\n")
                 result.stream.write("Current directory changed\n")
                 result.stream.write("Was: %s\n" % cur_dir)
                 result.stream.write("Now: %s\n" % os.path.abspath("."))
@@ -346,9 +389,9 @@ class TestRunner(unittest.TextTestRunner):
         except Exception as msg:
             # This happened during the import
             sys.stderr.write("ERROR\n")
-            result.stream.write(result.separator1+"\n")
+            result.stream.write(result.separator1 + "\n")
             result.stream.write("ERROR: %s\n" % name)
-            result.stream.write(result.separator2+"\n")
+            result.stream.write(result.separator2 + "\n")
             result.stream.write(traceback.format_exc())
             return False
         except KeyboardInterrupt as err:
@@ -359,14 +402,14 @@ class TestRunner(unittest.TextTestRunner):
             # This happens in Jython with java.lang.ClassFormatError:
             # Invalid method Code length ...
             sys.stderr.write("ERROR\n")
-            result.stream.write(result.separator1+"\n")
+            result.stream.write(result.separator1 + "\n")
             result.stream.write("ERROR: %s\n" % name)
-            result.stream.write(result.separator2+"\n")
+            result.stream.write(result.separator2 + "\n")
             result.stream.write(traceback.format_exc())
             return False
         finally:
             sys.stdout = stdout
-            #Running under PyPy we were leaking file handles...
+            # Running under PyPy we were leaking file handles...
             gc.collect()
 
     def run(self):
@@ -382,8 +425,8 @@ class TestRunner(unittest.TextTestRunner):
         timeTaken = stopTime - startTime
         sys.stderr.write(self.stream.getvalue())
         sys.stderr.write('-' * 70 + "\n")
-        sys.stderr.write("Ran %d test%s in %.3f seconds\n" % (
-            total, total != 1 and "s" or "", timeTaken))
+        sys.stderr.write("Ran %d test%s in %.3f seconds\n" %
+                         (total, total != 1 and "s" or "", timeTaken))
         sys.stderr.write("\n")
         if failures:
             sys.stderr.write("FAILED (failures = %d)\n" % failures)
@@ -393,5 +436,5 @@ class TestRunner(unittest.TextTestRunner):
 if __name__ == "__main__":
     errors = main(sys.argv[1:])
     if errors:
-        #Doing a sys.exit(...) isn't nice if run from IDLE...
+        # Doing a sys.exit(...) isn't nice if run from IDLE...
         sys.exit(1)
