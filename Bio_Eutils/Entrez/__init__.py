@@ -7,10 +7,10 @@
 """Provides code to access NCBI over the WWW.
 
 The main Entrez web page is available at:
-http://www.ncbi.nlm.nih.gov/Entrez/
+https://www.ncbi.nlm.nih.gov/Entrez/
 
 A list of the Entrez utilities is available at:
-http://www.ncbi.nlm.nih.gov/entrez/utils/utils_index.html
+https://www.ncbi.nlm.nih.gov/entrez/utils/utils_index.html
 
 Variables:
 
@@ -97,13 +97,13 @@ def epost(db, **keywds):
     environment to use with subsequent search strategies.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/epost_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/epost_help.html
 
     Return a handle to the results.
 
     Raises an IOError exception if there's a network error.
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/epost.fcgi'
     variables = {'db': db}
     variables.update(keywds)
     return _open(cgi, variables, post=True)
@@ -116,7 +116,7 @@ def efetch(db, **keywords):
     more UIs or from user's environment.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/efetch_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/efetch_help.html
 
     Return a handle to the results.
 
@@ -134,7 +134,7 @@ def efetch(db, **keywords):
     **Warning:** The NCBI changed the default retmode in Feb 2012, so many
     databases which previously returned text output now give XML.
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi'
     variables = {'db': db}
     variables.update(keywords)
     post = False
@@ -161,7 +161,7 @@ def esearch(db, term, **keywds):
     for future use in the user's environment.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/esearch_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/esearch_help.html
 
     Return a handle to the results which are always in XML format.
 
@@ -182,7 +182,7 @@ def esearch(db, term, **keywds):
     True
 
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi'
     variables = {'db': db,
                  'term': term}
     variables.update(keywds)
@@ -199,7 +199,7 @@ def elink(**keywds):
     database, or lists LinkOut URLs and attributes for multiple IDs.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/elink_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/elink_help.html
 
     Return a handle to the results, by default in XML format.
 
@@ -222,7 +222,7 @@ def elink(**keywds):
 
     This is explained in much more detail in the Biopython Tutorial.
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/elink.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
@@ -235,7 +235,7 @@ def einfo(**keywds):
     available links for each Entrez database.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/einfo_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/einfo_help.html
 
     Return a handle to the results, by default in XML format.
 
@@ -250,7 +250,7 @@ def einfo(**keywds):
     True
 
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/einfo.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
@@ -263,7 +263,7 @@ def esummary(**keywds):
     from the user's environment.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/esummary_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/esummary_help.html
 
     Return a handle to the results, by default in XML format.
 
@@ -282,7 +282,7 @@ def esummary(**keywds):
     Computational biology and chemistry
 
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
@@ -295,7 +295,7 @@ def egquery(**keywds):
     using Global Query.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/egquery_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/egquery_help.html
 
     Return a handle to the results in XML format.
 
@@ -316,7 +316,7 @@ def egquery(**keywds):
     True
 
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/egquery.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/egquery.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
@@ -328,7 +328,7 @@ def espell(**keywds):
     ESpell retrieves spelling suggestions, if available.
 
     See the online documentation for an explanation of the parameters:
-    http://www.ncbi.nlm.nih.gov/entrez/query/static/espell_help.html
+    https://www.ncbi.nlm.nih.gov/entrez/query/static/espell_help.html
 
     Return a handle to the results, by default in XML format.
 
@@ -345,7 +345,7 @@ def espell(**keywds):
     biopython
 
     """
-    cgi = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/espell.fcgi'
+    cgi = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/espell.fcgi'
     variables = {}
     variables.update(keywds)
     return _open(cgi, variables)
